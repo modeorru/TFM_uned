@@ -1,7 +1,6 @@
 import numpy as np
-from contactos import calcular_contactos
 from tqdm import tqdm
-import indices
+import utilidades
 
 
 class lattice():
@@ -77,7 +76,7 @@ class lattice():
 
         # ASIGNACIÓN DE LOS ÍNDICES DE REFRACCIÓN
 
-        self.n = indices.asignar(self.nx, self.ny, self.n0, self.n1, loc_eje, A, caos)
+        self.n = utilidades.asignar(self.nx, self.ny, self.n0, self.n1, loc_eje, A, caos)
 
         # INICIALIZACIÓN DE ÍNDICES Y COORDENDAS DE LOS RAYOS
 
@@ -274,7 +273,7 @@ class lattice():
                 th = self.theta[i][-1]  # que ángulo respecto la horizontal
 
                 # CALCULAMOS CONTACTOS
-                dx, dy, ix, iy, mov_type = calcular_contactos(
+                dx, dy, ix, iy, mov_type = utilidades.calcular_contactos(
                     self.dx, self.dy, cx, cy, idxx, idxy, th)
 
                 # ACTUALIZAMOS POSICIONES
