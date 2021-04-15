@@ -1,0 +1,16 @@
+# INPUTS #
+
+num_rayos   100
+Lx  1
+Ly  1
+nx  100
+ny  100
+n0  2
+n1  1
+loc_eje None
+A  None
+caos    1
+folder  results
+name    None
+statistics  True
+samples 500
