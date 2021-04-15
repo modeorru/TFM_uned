@@ -3,14 +3,14 @@ import numpy as np
 import os
 from main import main
 from tqdm import tqdm
-import reading_inputs
+import utilidades
 import study_intensity
 import plot as pp
 import matplotlib.pyplot as plt
 import seaborn as sns
 
 
-num_rayos, Lx, Ly, nx, ny, n0, n1, loc_eje, A, caos, folder, name, statistics, samples = reading_inputs.read()
+num_rayos, Lx, Ly, nx, ny, n0, n1, loc_eje, A, caos, folder, name, statistics, samples = utilidades.read()
 print('Simulando', num_rayos, 'en', samples, 'samples')
 
 reload = True
