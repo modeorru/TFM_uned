@@ -4,21 +4,48 @@ import lattice as lat
 import plot as pp
 
 
-def main(num_rayos, Lx, Ly, nx, ny, n0, n1, loc_eje, A, caos, name, folder, statistics):
-    t0 = time.time()
-    red = lat.lattice(num_rayos, Lx, Ly, nx, ny, n0, n1, loc_eje, A, caos)
-    red.evolucion()
-    print('Finished in: ', time.time()-t0)
-    if not statistics:
-        print('Plotting...')
-        pp.plot_trajectories(red.coordx_rayos, red.coordy_rayos, red.idxx_rayos, red.idxy_rayos, red.dx, red.dy, red.nx, red.ny, red.n, name=name,
-                             folder=folder)
-        if name is not None:
-            pp.plot_intensities(red.intensities, red.nx, red.ny,
-                                name=name+'_intensities', folder=folder)
-        else:
-            pp.plot_intensities(red.intensities, red.nx, red.ny, name=name, folder=folder)
+def main(num_rayos, Lx, Ly, nx, ny, n0, n1, loc_eje, A, caos, random_theta=None, chosen_theta=None):
+    '''
+    Función principal para las simulaciones. En ella se inicializa la red y se deja evolucionar
+    hasta que todos los rayos han alcanzado algún extremo de la caja.
 
+    Argumentos importantes:
+
+        -> num_rayos: int
+                número de rayos "lanzados".
+        -> Lx: float
+                longitud en el eje x.
+        -> Ly: float
+                longitud en el eje y.
+        -> nx: int
+                número de celdas en el eje x.
+        -> ny: int
+                número de celdas en el eje y.
+        -> n0: float
+                límite inferior para el índice de refracción.
+        -> n1: float
+                límite superior para el índice de refracción.
+        -> loc_eje: int o None
+                if None: no se introduce un eje de cambio de índice.
+                if int: se introduce un eje que separa dos índices.
+        -> A: float < 1 or None
+                se introducen modulaciones suaves en el índice de refracción de
+                acuerdo a la ec.(1)
+                        n_{ij} =1 + A·sin(2·pi·i/L)·sin(2·pi·j/L)       (1)
+        -> caos: 1 or None
+                if 1: el índice de refracción obedecerá ec.(2)
+                            n = U[n0,n1]                                (2)
+    '''
+    # Iniciamos tiempo
+    t0 = time.time()
+    # Iniciamos la red
+    red = lat.lattice(num_rayos, Lx, Ly, nx, ny, n0, n1, loc_eje,
+                      A, caos, random_theta, chosen_theta)
+    # Evolucionamos la red
+    red.evolucion()
+
+    # Calculamos el tiempo empleado
+    #print('Finished in: ', time.time()-t0)
     return red
 
 

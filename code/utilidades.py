@@ -130,7 +130,7 @@ def asignar(nx, ny, n0, n1, loc_eje=None, A=None, caos=None, L=1):
                 n[j, i] = 1 + A*np.sin(2*np.pi*j/ny)*np.sin(2*np.pi*i/nx)
     elif caos is not None:
         # CAOS
-        print('Estocasticidad en los índices')
+        #print('Estocasticidad en los índices')
         for i in range(nx):
             for j in range(ny):
                 rdn = np.random.rand()
@@ -156,3 +156,80 @@ def read():
     info = [int(d[0]), int(d[1]), int(d[2]), int(d[3]), int(d[4]), float(d[5]), float(d[6]),
             d[7], d[8], d[9], d[10], d[11], d[12], int(d[13])]
     return info
+
+
+def extraer_coord_globales(dx, dy, cx, cy, ix, iy):
+
+    cxglob = ix*dx + cx
+    cyglob = iy*dy + cy
+    return cxglob, cyglob
+
+
+class Point:
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+
+
+def onSegment(p, q, r):
+    '''
+    Dados tres puntos colineares p,q,r la función permite comprobar
+    si el punto q queda en la línea "pr"
+    '''
+    if ((q.x <= max(p.x, r.x)) and (q.x >= min(p.x, r.x)) and
+            (q.y <= max(p.y, r.y)) and (q.y >= min(p.y, r.y))):
+        return True
+    return False
+
+
+def orientation(p, q, r):
+    '''
+    Permite conocer la orientación de un conjunto de tres puntos (p,q,r)
+    devolviendo los siguientes valores:
+    0 -> puntos colineares
+    1 -> puntos "sentido horario"
+    2 -> puntos "sentido antihorario"
+    Para la fórmula siguiente consultar:
+    https://www.geeksforgeeks.org/orientation-3-ordered-points/amp/
+    '''
+    val = (float(q.y - p.y) * (r.x - q.x)) - (float(q.x - p.x) * (r.y - q.y))
+    if (val > 0):
+        # Sentido horario
+        return 1
+    elif (val < 0):
+        # Sentido antihorario
+        return 2
+    else:
+        # Colinear
+        return 0
+
+
+def doIntersect(p1, q1, p2, q2):
+    '''
+    Buscar las 4 orientaciones necesarias para el caso
+    general y los especiales.
+    '''
+    o1 = orientation(p1, q1, p2)
+    o2 = orientation(p1, q1, q2)
+    o3 = orientation(p2, q2, p1)
+    o4 = orientation(p2, q2, q1)
+
+    # Caso general
+    if ((o1 != o2) and (o3 != o4)):
+        return True
+
+    # Casos especiales
+    # p1 , q1 y p2 son colineares  y p2 está en el segmento p1q1
+    if ((o1 == 0) and onSegment(p1, p2, q1)):
+        return True
+    # p1 , q1 y q2 son colineares  y q2 está en el segmento p1q1
+    if ((o2 == 0) and onSegment(p1, q2, q1)):
+        return True
+    # p2 , q2 y p1 son colineares y p1 está en el segmento p2q2
+    if ((o3 == 0) and onSegment(p2, p1, q2)):
+        return True
+    # p2 , q2 y q1 son colineares y q1 en el segmento p2q2
+    if ((o4 == 0) and onSegment(p2, q1, q2)):
+        return True
+    # Ninguno de los casos
+    return False

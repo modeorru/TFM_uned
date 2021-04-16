@@ -108,6 +108,7 @@ class lattice():
         elif chosen_theta is not None:
             # solo valido cuando se tiene 1 rayo
             theta = np.array([chosen_theta for i in range(self.num_rayos)])
+            theta = theta.reshape((self.num_rayos, 1))
         else:
             theta = np.linspace(0, 2*np.pi, self.num_rayos)
             theta = theta.reshape((self.num_rayos, 1))
@@ -267,7 +268,9 @@ class lattice():
             t = 0
 
             while self.movimiento[i] != 0:  # si no ha llegado a los extremos del cubo
+
                 idxx, idxy = self.idxx_rayos[i][-1], self.idxy_rayos[i][-1]  # en que celda están
+
                 # que coordenadas dentro de la celda
                 cx, cy = self.coordx_rayos[i][-1], self.coordy_rayos[i][-1]
                 th = self.theta[i][-1]  # que ángulo respecto la horizontal
@@ -277,6 +280,7 @@ class lattice():
                     self.dx, self.dy, cx, cy, idxx, idxy, th)
 
                 # ACTUALIZAMOS POSICIONES
+
                 self.actualizacion(i, idxx, idxy, cx, cy, dx, dy, ix, iy, th, mov_type)
                 t += 1
                 if t > 5000:  # en caso que el rayo tarde mucho se descarta
