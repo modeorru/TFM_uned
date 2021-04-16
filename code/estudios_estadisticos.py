@@ -94,7 +94,7 @@ def analisis_longitudes(num_rayos, n0s, n1s, Lx, Ly, nx, ny, folder):
         # Plotting distancia real vs distancia rayo
 
         ax[k].plot(real_dist, real_dist, 'r')
-        ax[k].scatter(real_dist, total_dist, marker='x', s=5, label='{}-{}'.format(n0, n1))
+        ax[k].scatter(real_dist, total_dist, marker='x', s=5, label=f'{n0}-{n1}')
 
         ax[k].set_xlabel('Distancia real')
         ax[k].set_ylabel('Distancia rayo')
@@ -107,7 +107,7 @@ def analisis_longitudes(num_rayos, n0s, n1s, Lx, Ly, nx, ny, folder):
         total_dist = np.array(total_dist)
         dif = abs(total_dist-real_dist)/real_dist
 
-        sns.histplot(dif, ax=ax2[k], binwidth=0.03, label='{}-{}'.format(n0, n1))
+        sns.histplot(dif, ax=ax2[k], binwidth=0.03, label=f'{n0}-{n1}')
         ax2[k].set_xlim((0, 2))
         ax2[k].set_ylim((0, 120))
         ax2[k].legend(title='n0-n1')
@@ -145,7 +145,7 @@ def analisis_punto_fijado(samples, n0, n1, nx, ny, folder):
             point = acum[a, b, :]
             sns.histplot(point, ax=axs[i, j])
             axs[i, j].axvline(i_mean[a, b], c='r', linewidth=3,
-                              label='media en ({},{})'.format(a, b))
+                              label=f'media en ({a},{b})')
             axs[i, j].legend()
     plt.tight_layout()
     plt.savefig(folder / 'punto_fijado.jpg')
@@ -173,11 +173,11 @@ def analisis_direccion_fija_diferente_ruido(samples, n0s, n1s, nx, ny, Lx, Ly, f
             i_mean=i_mean, i_std=i_std, Lx=Lx, Ly=Ly, n0=n0, n1=n1, nx=nx,
             ny=ny, chosen_theta=chosen_theta)
 
-        ax[0].loglog(d, i_mean_evol, '-x', linewidth=1, label='{}-{}'.format(n0, n1))
-        ax2[0].loglog(d, i_std_evol**2, '-x', linewidth=1, label='{}-{}'.format(n0, n1))
+        ax[0].loglog(d, i_mean_evol, '-x', linewidth=1, label=f'{n0}-{n1}')
+        ax2[0].loglog(d, i_std_evol**2, '-x', linewidth=1, label=f'{n0}-{n1}')
 
-        ax[1].semilogy(d, i_mean_evol, '-x', linewidth=1, label='{}-{}'.format(n0, n1))
-        ax2[1].semilogy(d, i_std_evol**2, '-x', linewidth=1, label='{}-{}'.format(n0, n1))
+        ax[1].semilogy(d, i_mean_evol, '-x', linewidth=1, label=f'{n0}-{n1}')
+        ax2[1].semilogy(d, i_std_evol**2, '-x', linewidth=1, label='f'{n0}-{n1}')
 
     for i in range(2):
         ax[i].set_xlabel('d')
@@ -207,16 +207,16 @@ def analisis_ruido_fijo_diferente_direccion(samples, n0, n1, nx, ny, Lx, Ly, fol
     fig, ax = plt.subplots(2, 1, figsize=(8, 8))
     fig2, ax2 = plt.subplots(2, 1, figsize=(8, 8))
 
-    for _ in range(20):
+    for theta in chosen_theta:
 
         d, i_mean_evol, i_std_evol, Iinverse = __calculate(
-            i_mean, i_std, Lx, Ly, n0, n1, nx, ny, random_theta=True)
+            i_mean, i_std, Lx, Ly, n0, n1, nx, ny, chosen_theta=theta)
 
-        ax[0].loglog(d, i_mean_evol, '-x', linewidth=1, label='<I>')
+        ax[0].loglog(d, i_mean_evol, '-x', linewidth=1, label=f'{theta*180/np.pi}')
         ax2[0].loglog(d, i_std_evol**2, '-x', linewidth=1, label=r'$\sigma_I^2$')
 
-        ax[1].semilogy(d, i_mean_evol, '-x', linewidth=1, label='<I>')
-        ax2[1].semilogy(d, i_std_evol**2, '-x', linewidth=1, label=r'$\sigma_I^2$')
+        ax[1].semilogy(d, i_mean_evol, '-x', linewidth=1, label=f'{theta*180/np.pi}')
+        ax2[1].semilogy(d, i_std_evol**2, '-x', linewidth=1, label=f'{theta*180/np.pi}')
 
     for i in range(2):
         ax[i].set_xlabel('d')
