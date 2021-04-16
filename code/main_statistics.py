@@ -70,8 +70,8 @@ if __name__ == '__main__':
     # Definimos las variables a usar
     samples = 500
     num_rayos = 100
-    Lx = 1
-    Ly = 1
+    Lx = 100
+    Ly = 100
     nx = 100
     ny = 100
     folder = Path('results')
@@ -83,7 +83,7 @@ if __name__ == '__main__':
     # ANÁLISIS INTENSIDAD Y STD EN LA RED
     n0s = np.ones(10)*1
     n1s = np.arange(1, 3, 0.2)
-    reload = False  # si importamos los resultados ya guardados
+    reload = True  # si importamos los resultados ya guardados
     plotting = False
     stats.Analisis_Intensidad(n0s, n1s, plotting, reload)
 
@@ -94,17 +94,18 @@ if __name__ == '__main__':
 
     # ANÁLISIS DEL HISTOGRAMA DE INTENSIDAD PARA DIFERENTES PUNTOS DE LA RED
     n0 = 1.0
-    n1 = 1.2
+    n1 = 2.0
     stats.Analisis_Punto_Fijado(n0, n1)
 
     # ANÁLISIS DE LA INTENSIDAD EN UNA DIRECCIÓN FIJA
     chosen_theta = np.pi/6
+
     n1s = np.arange(1.2, 3, 0.2)
     n0s = np.ones(len(n1s))*1
     stats.Analisis_Direccion_Fija_Diferente_Ruido(n0s, n1s, chosen_theta)
 
     # ANÁLISIS DE LA INTENSIDAD PARA VARIAS DIRECCIONES Y RUIDO FIJO
-    chosen_theta = np.linspace(start=0, stop=np.pi/4, num=10)
+    chosen_theta = np.linspace(start=0, stop=np.pi/2, num=10)
     n0 = 1.0
-    n1 = 1.2
+    n1 = 2.0
     stats.Analisis_Ruido_Fijo_Diferente_Direccion(n0, n1, chosen_theta)

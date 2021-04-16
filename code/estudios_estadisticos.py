@@ -26,22 +26,30 @@ def analisis_intensidad(samples, num_rayos, n0s, n1s, Lx, Ly, nx, ny, plotting, 
                         if i == 0:
                             x, y = red.intensities.shape
                             acum = np.zeros((x, y, samples))
+                            t_minimizante = np.zeros((x, y, samples))
                         acum[:, :, i] = red.intensities
+                        t_minimizante[:, :, i] = red.t_minimizante
                         successful = True
-
             print('Guardando...')
             np.save(folder / f'intensities_{samples}_{np.round(n0,1)}_{np.round(n1,1)}', acum)
+            np.save(folder / f't_min_{samples}_{np.round(n0,1)}_{np.round(n1,1)}', t_minimizante)
 
             if plotting:
                 print('Plotting')
                 plot = pp.plot_class(red.coordx_rayos, red.coordy_rayos, red.idxx_rayos, red.idxy_rayos,
                                      red.dx, red.dy, red.nx, red.ny, red.n, folder=folder)
+                # Trayectorias
+                plot.plot_trajectories(cruces=None, name=f'trajectory_{n0}_{n1}')
                 # Gráfico de la intensidad media en la celda
+                print('Intensidades...')
                 plot.plot_intensities(intensities=np.mean(acum, axis=2),
                                       name=f'mean_intensity_{n0}_{n1}', mean=True)
-                # Gráfico de la std en la celda
+                # Gráfico de la std en las celdas
                 plot.plot_intensities(intensities=np.std(acum, axis=2),
                                       name=f'std_dev_{n0}_{n1}', std=True)
+                # Gráfico de los tiempos minimizantes
+                plot.plot_t_min(tmin=np.mean(t_minimizante, axis=2), std=False,
+                                mean=False, name=f'tminimizante_{n0}_{n1}')
 
 
 def analisis_longitudes(num_rayos, n0s, n1s, Lx, Ly, nx, ny, folder):
@@ -52,11 +60,12 @@ def analisis_longitudes(num_rayos, n0s, n1s, Lx, Ly, nx, ny, folder):
 
     print('Analisis de la longitud del rayo vs longitud real recorrida')
 
-    fig, ax = plt.subplots(8, 1, figsize=(8, 14))
-    fig2, ax2 = plt.subplots(8, 1, figsize=(8, 14))
+    fig, ax = plt.subplots(len(n0s), 1, figsize=(8, 14))
+    fig2, ax2 = plt.subplots(len(n0s), 1, figsize=(8, 14))
 
     for k, (n0, n1) in enumerate(zip(n0s, n1s)):
 
+        print('Índices', n0, n1)
         # Solo hace falta realizar un sample. Estudiamos todos sus rayos
         red = main(num_rayos, Lx, Ly, nx, ny, n0, n1, None, None, 1)
 
@@ -65,7 +74,6 @@ def analisis_longitudes(num_rayos, n0s, n1s, Lx, Ly, nx, ny, folder):
 
         for i in range(num_rayos):
             dist = 0
-
             for j in range(len(red.coordx_rayos[i])-1):
 
                 cx1glob, cy1glob = utilidades.extraer_coord_globales(
@@ -94,24 +102,19 @@ def analisis_longitudes(num_rayos, n0s, n1s, Lx, Ly, nx, ny, folder):
         # Plotting distancia real vs distancia rayo
 
         ax[k].plot(real_dist, real_dist, 'r')
-        ax[k].scatter(real_dist, total_dist, marker='x', s=5, label=f'{n0}-{n1}')
-
-        ax[k].set_xlabel('Distancia real')
-        ax[k].set_ylabel('Distancia rayo')
+        ax[k].scatter(total_dist, real_dist, marker='x', s=5, label=f'{n0}-{n1}')
+        ax[k].set_xlim((45, 200))
+        ax[k].set_xlabel('Longitud de rayo')
+        ax[k].set_ylabel('Distancia real')
         ax[k].legend(title='n0-n1')
-        ax[k].set_ylim([0, 3])
 
-        # Graficamos el histograma de diferencias entre distancias
+        # Graficamos el histograma de distancias reales
 
-        real_dist = np.array(real_dist)
-        total_dist = np.array(total_dist)
-        dif = abs(total_dist-real_dist)/real_dist
-
-        sns.histplot(dif, ax=ax2[k], binwidth=0.03, label=f'{n0}-{n1}')
-        ax2[k].set_xlim((0, 2))
-        ax2[k].set_ylim((0, 120))
+        sns.histplot(total_dist, ax=ax2[k], label=f'{n0}-{n1}')
+        #ax2[k].set_xlim((0, 2))
+        #ax2[k].set_ylim((0, 120))
         ax2[k].legend(title='n0-n1')
-        ax2[k].set_xlabel('Error absoluto relativo')
+        ax2[k].set_xlabel('Longitud de rayo')
 
     fig.tight_layout()
     fig2.tight_layout()
@@ -124,7 +127,10 @@ def analisis_punto_fijado(samples, n0, n1, nx, ny, folder):
     Estudio del histograma de intensidades para un punto fijado de la red.
     '''
     # Cargamos los valores de intensidad guardados para unos determinados índices
-    acum = np.load(folder / f'intensities_{samples}_{n0}_{n1}.npy')
+    try:
+        acum = np.load(folder / f'intensities_{samples}_{n0}_{n1}.npy')
+    except FileNotFoundError:
+        acum = np.load('..' / folder / f'intensities_{samples}_{n0}_{n1}.npy')
 
     # Mean and std
     i_mean = np.mean(acum, axis=2)
@@ -148,7 +154,10 @@ def analisis_punto_fijado(samples, n0, n1, nx, ny, folder):
                               label=f'media en ({a},{b})')
             axs[i, j].legend()
     plt.tight_layout()
-    plt.savefig(folder / 'punto_fijado.jpg')
+    try:
+        plt.savefig(folder / 'punto_fijado.jpg')
+    except FileNotFoundError:
+        plt.savefig('..' / folder / 'punto_fijado.jpg')
 
 
 def analisis_direccion_fija_diferente_ruido(samples, n0s, n1s, nx, ny, Lx, Ly, folder, chosen_theta):
@@ -160,7 +169,11 @@ def analisis_direccion_fija_diferente_ruido(samples, n0s, n1s, nx, ny, Lx, Ly, f
     fig2, ax2 = plt.subplots(2, 1, figsize=(8, 8))
 
     for n0, n1 in zip(n0s, n1s):
-        acum = np.load(folder / f'intensities_{samples}_{np.round(n0,1)}_{np.round(n1,1)}.npy')
+        try:
+            acum = np.load(folder / f'intensities_{samples}_{np.round(n0,1)}_{np.round(n1,1)}.npy')
+        except FileNotFoundError:
+            acum = np.load('..' / folder /
+                           f'intensities_{samples}_{np.round(n0,1)}_{np.round(n1,1)}.npy')
         # Mean and std
         i_mean = np.mean(acum, axis=2)
         i_std = np.std(acum, axis=2)
@@ -170,26 +183,36 @@ def analisis_direccion_fija_diferente_ruido(samples, n0s, n1s, nx, ny, Lx, Ly, f
 
         # Análsis para el theta_fijado
         d, i_mean_evol, i_std_evol, Iinverse = __calculate(
-            i_mean=i_mean, i_std=i_std, Lx=Lx, Ly=Ly, n0=n0, n1=n1, nx=nx,
+            i_mean=i_mean, i_std=i_std, Lx=Lx, Ly=Ly, n0=1, n1=1, nx=nx,
             ny=ny, chosen_theta=chosen_theta)
 
-        ax[0].loglog(d, i_mean_evol, '-x', linewidth=1, label=f'{n0}-{n1}')
-        ax2[0].loglog(d, i_std_evol**2, '-x', linewidth=1, label=f'{n0}-{n1}')
+        d = np.sort(d)
+        i_mean_evol = np.array(i_mean_evol)[np.argsort(d)]
+        i_mean_evol = np.array(i_std_evol)[np.argsort(d)]
 
-        ax[1].semilogy(d, i_mean_evol, '-x', linewidth=1, label=f'{n0}-{n1}')
-        ax2[1].semilogy(d, i_std_evol**2, '-x', linewidth=1, label='f'{n0}-{n1}')
+        ax[0].loglog(d, i_mean_evol, '-.', linewidth=1, label=f'{n0}-{n1}')
+        ax2[0].loglog(d, i_std_evol, '-.', linewidth=1, label=f'{n0}-{n1}')
+
+        ax[1].semilogy(d, i_mean_evol, '-.', linewidth=1, label=f'{n0}-{n1}')
+        ax2[1].semilogy(d, i_std_evol, '-.', linewidth=1, label=f'{n0}-{n1}')
+
+    ax2[0].semilogy(d, d**(-2/3), '-', linewidth=3, label='-2/3')
 
     for i in range(2):
         ax[i].set_xlabel('d')
         ax2[i].set_xlabel('d')
         ax[i].set_ylabel('<I>')
-        ax2[i].set_ylabel(r'$\sigma_I^2$')
+        ax2[i].set_ylabel(r'$\sigma_I$')
         ax[i].legend(title='n0-n1')
         ax2[i].legend(title='n0-n1')
 
     plt.tight_layout()
-    fig.savefig(folder / 'intensidad_media_vs_d_diferente_ruido.jpg')
-    fig2.savefig(folder / 'std_vs_d_diferente_ruido.jpg')
+    try:
+        fig.savefig(folder / 'intensidad_media_vs_d_diferente_ruido.jpg')
+        fig2.savefig(folder / 'std_vs_d_diferente_ruido.jpg')
+    except FileNotFoundError:
+        fig.savefig('..' / folder / 'intensidad_media_vs_d_diferente_ruido.jpg')
+        fig2.savefig('..' / folder / 'std_vs_d_diferente_ruido.jpg')
 
 
 def analisis_ruido_fijo_diferente_direccion(samples, n0, n1, nx, ny, Lx, Ly, folder, chosen_theta):
@@ -210,22 +233,34 @@ def analisis_ruido_fijo_diferente_direccion(samples, n0, n1, nx, ny, Lx, Ly, fol
     for theta in chosen_theta:
 
         d, i_mean_evol, i_std_evol, Iinverse = __calculate(
-            i_mean, i_std, Lx, Ly, n0, n1, nx, ny, chosen_theta=theta)
+            i_mean, i_std, Lx, Ly, 1, 1, nx, ny, chosen_theta=theta)
 
-        ax[0].loglog(d, i_mean_evol, '-x', linewidth=1, label=f'{theta*180/np.pi}')
-        ax2[0].loglog(d, i_std_evol**2, '-x', linewidth=1, label=r'$\sigma_I^2$')
+        d = np.sort(d)
+        i_mean_evol = np.array(i_mean_evol)[np.argsort(d)]
+        i_mean_evol = np.array(i_std_evol)[np.argsort(d)]
 
-        ax[1].semilogy(d, i_mean_evol, '-x', linewidth=1, label=f'{theta*180/np.pi}')
-        ax2[1].semilogy(d, i_std_evol**2, '-x', linewidth=1, label=f'{theta*180/np.pi}')
+        ax[0].loglog(d, i_mean_evol, '-.', linewidth=1, label=f'{np.round(theta*180/np.pi)}')
+        ax2[0].loglog(d, i_std_evol, '-', linewidth=1, label=f'{np.round(theta*180/np.pi)}')
+
+        ax[1].semilogy(d, i_mean_evol, '-.', linewidth=1, label=f'{np.round(theta*180/np.pi)}')
+        ax2[1].semilogy(d, i_std_evol, '-.', linewidth=1, label=f'{np.round(theta*180/np.pi)}')
+
+    ax2[0].semilogy(d, d**(-2/3), '-', linewidth=3, label='-2/3')
 
     for i in range(2):
         ax[i].set_xlabel('d')
         ax2[i].set_xlabel('d')
         ax[i].set_ylabel('<I>')
-        ax2[i].set_ylabel(r'$\sigma_I^2$')
+        ax2[i].set_ylabel(r'$\sigma_I$')
+        ax[i].legend()
+        ax2[i].legend()
 
-    fig.savefig(folder / 'i_vs_d_20_rayos.jpg')
-    fig2.savefig(folder / 'sigma_vs_d_20_rayos.jpg')
+    fig.savefig(folder / 'i_vs_d_10_direcciones.jpg')
+    fig2.savefig(folder / 'sigma_vs_d_10_direcciones.jpg')
+
+
+def analisis_tiempo_minimizante():
+    return
 
 
 def __calculate(i_mean, i_std, Lx, Ly, n0, n1, nx, ny, random_theta=False, chosen_theta=None):

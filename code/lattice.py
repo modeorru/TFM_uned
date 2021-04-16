@@ -56,7 +56,8 @@ class lattice():
         self.nx = nx  # número de celdas x
         self.ny = ny  # número de celdas y
 
-        self.intensities = np.zeros((self.nx, self.ny))
+        self.intensities = np.zeros((self.nx, self.ny))  # intensidad en cada celda
+        self.t_minimizante = np.ones((self.nx, self.ny))*(-1)  # tiempo minimizante en cada celda
 
         self.n0 = n0  # índice ref. 1
         self.n1 = n1  # índice ref. 2
@@ -73,6 +74,9 @@ class lattice():
                          random_theta=random_theta, chosen_theta=chosen_theta)
 
     def inicializar(self, loc_eje=None, A=None, caos=None, random_theta=False, chosen_theta=None):
+
+        # ASIGNACIÓN DE LOS TIEMPOS DE CADA RAYO
+        self.tiempos = np.zeros(self.num_rayos)
 
         # ASIGNACIÓN DE LOS ÍNDICES DE REFRACCIÓN
 
@@ -260,6 +264,12 @@ class lattice():
         self.coordy_rayos[i].append(cy)
         self.idxx_rayos[i].append(ix)
         self.idxy_rayos[i].append(iy)
+        # Actualizamos el tiempo de viaje del rayo t = x·n/c, con c=1
+        t_viaje = (np.sqrt(dx**2 + dy**2))*self.n[idxy, idxx]
+        self.tiempos[i] += t_viaje
+        # si el tiempo de llegada a la tesela es minimizante, se guarda
+        if self.tiempos[i] < self.t_minimizante[iy, ix] or self.t_minimizante[iy, ix] < 0:
+            self.t_minimizante[iy, ix] = self.tiempos[i]
 
     def evolucion(self):
 
