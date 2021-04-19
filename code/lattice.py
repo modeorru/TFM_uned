@@ -114,7 +114,7 @@ class lattice():
             theta = np.array([chosen_theta for i in range(self.num_rayos)])
             theta = theta.reshape((self.num_rayos, 1))
         else:
-            theta = np.linspace(0, 2*np.pi, self.num_rayos)
+            theta = np.linspace(0, 2*np.pi, self.num_rayos, endpoint=False)
             theta = theta.reshape((self.num_rayos, 1))
 
         self.theta = theta.tolist()
