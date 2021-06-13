@@ -28,7 +28,7 @@ def main(num_rayos, Lx, Ly, nx, ny, n0, n1, loc_eje, A, caos, random_theta=None,
         -> loc_eje: int o None
                 if None: no se introduce un eje de cambio de índice.
                 if int: se introduce un eje que separa dos índices.
-        -> A: float < 1 or None
+        -> A: float |A|< 1 or None
                 se introducen modulaciones suaves en el índice de refracción de
                 acuerdo a la ec.(1)
                         n_{ij} =1 + A·sin(2·pi·i/L)·sin(2·pi·j/L)       (1)
@@ -58,11 +58,11 @@ if __name__ == '__main__':
     ny = 50
     n0 = 2
     n1 = 1
-    loc_eje = None
-    A = 0.8
+    loc_eje = 10
+    A = None
     caos = None
-    folder = 'results'
+    folder = 'results/eje_vertical'
     statistics = False
 
     main(num_rayos, Lx, Ly, nx, ny, n0, n1, loc_eje, A=A, caos=caos,
-         name='normal', folder=folder, statistics=statistics)
+         random_theta=None, chosen_theta=None)

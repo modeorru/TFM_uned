@@ -107,10 +107,11 @@ def asignar(nx, ny, n0, n1, loc_eje=None, A=None, caos=None, L=1):
     '''
     Dadas las dimensiones de la celda y los límites de los índices
     de refracción, se especifica la estrategia en la que los índices
-    se asignan a cada celda.
+    se asignan a cada celda. Importante recordar que nx es el número de
+    celdas en eje 'x', ny para el 'y'.
     '''
 
-    n = np.ones((nx, ny))*n0
+    n = np.ones((ny, nx))*n0  # ny va deltante porque es basado en (filas, cols)
 
     if loc_eje is not None:
 

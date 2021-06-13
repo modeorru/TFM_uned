@@ -56,7 +56,7 @@ class lattice():
         self.nx = nx  # número de celdas x
         self.ny = ny  # número de celdas y
 
-        self.intensities = np.zeros((self.nx, self.ny))  # intensidad en cada celda
+        self.intensities = np.zeros((self.nx, self.ny))*(-1)  # intensidad en cada celda
         self.t_minimizante = np.ones((self.nx, self.ny))*(-1)  # tiempo minimizante en cada celda
 
         self.n0 = n0  # índice ref. 1
@@ -64,10 +64,6 @@ class lattice():
 
         self.dx = self.Lx/self.nx  # discretización eje x
         self.dy = self.Ly/self.ny  # discretización eje y
-
-        x = np.linspace(0, self.Lx, self.nx)
-        y = np.linspace(0, self.Ly, self.ny)
-        self.xv, self.yv = np.meshgrid(x, y, sparse=False, indexing='xy')
 
         # Asignar índices de refracción y condiciones iniciales
         self.inicializar(loc_eje=loc_eje, A=A, caos=caos,
@@ -85,14 +81,15 @@ class lattice():
         # INICIALIZACIÓN DE ÍNDICES Y COORDENDAS DE LOS RAYOS
 
         # Índice de la celda donde empiezan los rayos
-        idxx = [int(self.nx/2) for i in range(self.num_rayos)]
-        idxy = [int(self.ny/2) for i in range(self.num_rayos)]
-
+        idxx = [int(self.nx/2) for i in range(self.num_rayos)]  # índice del eje x
+        idxy = [int(self.ny/2) for i in range(self.num_rayos)]  # índice del eje y
+        self.t_minimizante[idxy, idxx] = 0
         # Coordenadas
         #c0x = [np.random.rand()*self.dx for i in range(num_rayos)]
         #c0y = [np.random.rand()*self.dy for i in range(num_rayos)]
-        c0x = [self.dx/2 for i in range(self.num_rayos)]
-        c0y = [self.dy/2 for i in range(self.num_rayos)]
+
+        c0x = [self.dx/2 for i in range(self.num_rayos)]  # coordenada en eje x
+        c0y = [self.dy/2 for i in range(self.num_rayos)]  # coordenaa en eje y
 
         self.idxx_rayos = []
         self.idxy_rayos = []
@@ -130,7 +127,7 @@ class lattice():
             th -- ángulo respecto a la horizontal
             mov_type -- hacia q lado se mueve
         '''
-        tol = 10**(-5)  # tolerance value to avoid infinities
+        tol = 10**(-8)  # tolerancia para evitar divergencias
 
         # Actualizamos las posiciones y rotamos ángulo
         # Necesitamos realizar una translación del eje para tener
@@ -140,7 +137,10 @@ class lattice():
         cx_orig = cx
         cy_orig = cy
 
-        self.intensities[idxx, idxy] += (np.sqrt(dx**2 + dy**2))
+        if self.intensities[idxy, idxx] < 0:
+            self.intensities[idxy, idxx] = (np.sqrt(dx**2 + dy**2))
+        else:
+            self.intensities[idxy, idxx] += (np.sqrt(dx**2 + dy**2))
 
         # Actualizamos las intensidades por celda
         # SI EL NUEVO ÍNDICE ESTÁ DENTRO DE LA CUADRÍCULA
@@ -178,7 +178,7 @@ class lattice():
                     cy += tol
                 else:
                     cy -= tol
-
+            self.intensities[iy, ix] += (np.sqrt(2*tol**2))
             theta1 = abs(theta1)
 
             assert theta1 < np.pi/2, 'En este sistema referencia siempre menor que pi/2'
@@ -265,9 +265,11 @@ class lattice():
         self.idxx_rayos[i].append(ix)
         self.idxy_rayos[i].append(iy)
         # Actualizamos el tiempo de viaje del rayo t = x·n/c, con c=1
+
         t_viaje = (np.sqrt(dx**2 + dy**2))*self.n[idxy, idxx]
         self.tiempos[i] += t_viaje
         # si el tiempo de llegada a la tesela es minimizante, se guarda
+
         if self.tiempos[i] < self.t_minimizante[iy, ix] or self.t_minimizante[iy, ix] < 0:
             self.t_minimizante[iy, ix] = self.tiempos[i]
 
@@ -290,8 +292,8 @@ class lattice():
                     self.dx, self.dy, cx, cy, idxx, idxy, th)
 
                 # ACTUALIZAMOS POSICIONES
-
                 self.actualizacion(i, idxx, idxy, cx, cy, dx, dy, ix, iy, th, mov_type)
+
                 t += 1
                 if t > 5000:  # en caso que el rayo tarde mucho se descarta
                     print('Too long, discard that example')

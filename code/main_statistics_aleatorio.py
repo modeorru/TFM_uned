@@ -47,13 +47,21 @@ class estadisticas():
         estudios_estadisticos.analisis_intensidad(self.samples, self.num_rayos, n0s, n1s, self.Lx, self.Ly,
                                                   self.nx, self.ny, plotting, reload, self.folder)
 
-    def Analisis_Longitudes(self, n0s, n1s):
+    def Analisis_Longitudes(self, n0s, n1s, reload):
         estudios_estadisticos.analisis_longitudes(self.num_rayos, n0s, n1s, self.Lx, self.Ly, self.nx,
-                                                  self.ny, self.folder)
+                                                  self.ny, self.folder, reload)
+
+    def Analisis_Correlacion_Longitud(self, n0s, n1s, reload):
+        estudios_estadisticos.analisis_correlacion_longitud(self.num_rayos, n0s, n1s, self.Lx, self.Ly, self.nx,
+                                                            self.ny, self.folder, reload)
 
     def Analisis_Punto_Fijado(self, n0, n1):
         estudios_estadisticos.analisis_punto_fijado(self.samples, n0, n1, self.nx,
                                                     self.ny, self.folder)
+
+    def Analisis_Punto_Fijado_para_todo_n(self, n0, n1):
+        estudios_estadisticos.analisis_punto_fijado_para_todo_n(self.samples, n0, n1, self.nx,
+                                                                self.ny, self.folder)
 
     def Analisis_Direccion_Fija_Diferente_Ruido(self, n0s, n1s, chosen_theta):
         estudios_estadisticos.analisis_direccion_fija_diferente_ruido(self.samples, n0s, n1s, self.nx, self.ny,
@@ -68,60 +76,70 @@ class estadisticas():
         estudios_estadisticos.analisis_tiempo_minimizante(self.samples, n0s, n1s, self.nx, self.ny, self.Lx, self.Ly,
                                                           self.folder, chosen_theta)
 
+    def Analisis_Cruces(self, n0s, n1s, reload):
+        estudios_estadisticos.analisis_cruces(reload, self.samples, self.num_rayos, n0s, n1s, self.nx, self.ny, self.Lx, self.Ly,
+                                              self.folder)
+
 
 if __name__ == '__main__':
 
     # Definimos las variables a usar
-    samples = 500
-    num_rayos = 100
+    samples = 100
+    num_rayos = 1000
     Lx = 100
     Ly = 100
     nx = 100
     ny = 100
-    folder = Path('results')
+    folder = Path('results/aleatorio')
     folder.mkdir(exist_ok=True)
 
     # CREAMOS LA CLASE ESTADISTICAS
     stats = estadisticas(samples, num_rayos, Lx, Ly, nx, ny, folder)
 
     # ANÁLISIS INTENSIDAD Y STD EN LA RED
-    #n1s = np.arange(1, 3, 0.2)
-    n1s = np.arange(1, 1.5, 0.1)
+
+    n1s = np.arange(1.1, 2.0, 0.1)
     n0s = np.ones(len(n1s))*1
-    reload = True  # si importamos los resultados ya guardados
+    reload = False  # si importamos los resultados ya guardados
     plotting = False
+
     stats.Analisis_Intensidad(n0s, n1s, plotting, reload)
 
-    # ANÁLISIS DE RELACIÓN LONGITUD RAYO CON DISTANCIA REAL
-    n1s = np.arange(1, 3, 0.2)
-    n0s = np.ones(len(n1s))*1
-    stats.Analisis_Longitudes(n0s, n1s)
-
-    # ANÁLISIS DEL HISTOGRAMA DE INTENSIDAD PARA DIFERENTES PUNTOS DE LA RED
-    n0 = 1.0
-    n1 = 2.0
-    #stats.Analisis_Punto_Fijado(n0, n1)
-
-    assert 1 == 0
-
     # ANÁLISIS DE LA INTENSIDAD EN UNA DIRECCIÓN FIJA
-    chosen_theta_list = np.linspace(start=0, stop=np.pi/2, num=10)
-    n1s = np.arange(1.2, 3.0, 0.2)
-    n0s = np.ones(len(n1s))*1
+    chosen_theta_list = np.linspace(0, 45, 4, endpoint=True)*np.pi/180
+    # Escaneamos para una theta fija
     for chosen_theta in chosen_theta_list:
-        # Escaneamos para una theta fija
         stats.Analisis_Direccion_Fija_Diferente_Ruido(n0s, n1s, chosen_theta)
 
     # ANÁLISIS DE LA INTENSIDAD PARA VARIAS DIRECCIONES Y RUIDO FIJO
     chosen_theta = np.linspace(start=0, stop=np.pi/2, num=10)
-    n1s = np.arange(1.1, 1.5, 0.1)
-    n0s = np.ones(len(n1s))*1
+    # Escaneamos para un par de índices fijos
     for n0, n1 in zip(n0s, n1s):
-        # Escaneamos para un par de índices fijos
         stats.Analisis_Ruido_Fijo_Diferente_Direccion(n0, n1, chosen_theta)
 
     # ANÁLISIS DEL TIEMPO MINIMIZANTE EN DIRECCIÓN FIJA, DIFERENTE RUIDO
-    chosen_theta = np.pi/6
-    n1s = np.arange(1, 3, 0.2)
-    n0s = np.ones(len(n1s))*1
-    stats.Analisis_Tiempo_Minimizante(n0s, n1s, chosen_theta)
+    chosen_theta_list = np.linspace(start=0, stop=np.pi/4, num=4)
+    for chosen_theta in chosen_theta_list:
+        stats.Analisis_Tiempo_Minimizante(n0s, n1s, chosen_theta)
+
+    # ANÁLISIS DE RELACIÓN LONGITUD RAYO CON DISTANCIA REAL
+    stats.Analisis_Longitudes(n0s, n1s, reload=False)
+
+    # ANÁLISIS DE RELACIÓN LONGITUD RAYO CON DISTANCIA REAL EN UN EJE CONCRETO
+    stats.Analisis_Correlacion_Longitud(n0s, n1s, reload=False)
+
+    # ANÁLISIS DE DISTRIBUCIÓN DE CRUCES
+    stats.Analisis_Cruces(n0s, n1s, reload=False)
+
+    # ANÁLISIS DEL HISTOGRAMA DE INTENSIDAD PARA DIFERENTES PUNTOS DE LA RED
+    stats.Analisis_Punto_Fijado_para_todo_n(n0s[::2], n1s[::2])
+    for n0, n1 in zip(n0s, n1s):
+        n0 = np.around(n0, 1)
+        n1 = np.around(n1, 1)
+        stats.Analisis_Punto_Fijado(n0, n1)
+
+    print('Final!')
+
+
+
+
